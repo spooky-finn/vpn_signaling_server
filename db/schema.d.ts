@@ -1,3 +1,5 @@
+import { Selectable } from "kysely"
+
 declare global {
   namespace DB {
     interface Schema {
@@ -12,6 +14,8 @@ declare global {
       created_at: string
       status: UserStatus
     }
+
+    export type User = Selectable<UserTable>
   }
 }
 

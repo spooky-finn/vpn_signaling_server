@@ -1,3 +1,1 @@
-import { log } from "#root/utils/log"
-
-export { log }
+export { log } from "#root/utils/log"
