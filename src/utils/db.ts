@@ -24,7 +24,13 @@ export function initDB() {
     }),
   })
 
-  const migrationsLocation = path.join(__dirname, "..", "..", "migrations")
+  const migrationsLocation = path.join(
+    __dirname,
+    "..",
+    "..",
+    "db",
+    "migrations",
+  )
   migrateDB(db, migrationsLocation)
   return db
 }
