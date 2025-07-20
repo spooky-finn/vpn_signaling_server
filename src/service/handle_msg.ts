@@ -1,13 +1,19 @@
-import { UserRepo } from "#root/adapters/db/user.repo.js"
-import TelegramBot from "node-telegram-bot-api"
+import { IUserRepo, User } from "#root/ports/user.js"
+import TelegramBot,  from "node-telegram-bot-api"
+import { randomBytes } from "node:crypto"
+import { AdminService } from "./admin"
+
 export class HandleMsgService {
   constructor(
     private readonly bot: TelegramBot,
-    private readonly userRepo: UserRepo,
-    private readonly adminId: string,
+    private readonly userRepo: IUserRepo,
+    private readonly adminService: AdminService,
   ) {}
 
   async handleMsg(msg: TelegramBot.Message) {
+    if (msg.from?.is_bot) {
+      return
+    }
     const userId = msg.from?.id.toString()
     if (!userId) {
       throw new Error("User ID is required")
@@ -16,22 +22,34 @@ export class HandleMsgService {
     if (!username) {
       throw new Error("Username is required")
     }
-    if (
-      userId === this.adminId &&
-      (msg.text === "approve" || msg.text === "reject")
-    ) {
-      return await this.handleKeyboardResponse(msg)
-    }
-    const user = await this.userRepo.get(userId)
-    if (!user) {
-      await this.userRepo.createUser(userId, username)
-      this.sendMessageToAdmin(username, "Новая заявка")
+
+    const isAdminCallback = await this.adminService.handleAdminCallback(msg)
+    if (isAdminCallback) {
       return
     }
-    return await this.handleExistingUser(user)
+
+    const user = await this.userRepo.select(userId)
+    if (!user) {
+      await this.registerUser(msg.from!)
+    } else {
+      await this.getUserStatus(user)
+    }
   }
 
-  async handleExistingUser(user: DB.User) {
+  async registerUser(user: TelegramBot.User) {
+    const auth_key = randomBytes(32).toString("hex")
+    const username = user.username || ""
+    await this.userRepo.insert({
+      id: user.id.toString(),
+      username,
+      status: "new",
+      auth_key,
+      created_at: new Date().toISOString(),
+    })
+    this.sendMessageToAdmin(user.username || user.id.toString(), "Новая заявка")
+  }
+
+  async getUserStatus(user: User) {
     if (user.status === "new") {
       this.bot.sendMessage(
         user.id,
@@ -61,34 +79,15 @@ export class HandleMsgService {
     const msg = `Новая заявка от ${username}: ${message}`
     this.bot.sendMessage(this.adminId, msg, {
       reply_markup: {
-        keyboard: [[{ text: "approve" }, { text: "reject" }]],
+        inline_keyboard: [
+          [
+            { text: "approve", callback_data: "approve" },
+            { text: "reject", callback_data: "reject" },
+          ],
+        ],
         one_time_keyboard: true,
         resize_keyboard: true,
       },
     })
-  }
-
-  async handleKeyboardResponse(msg: TelegramBot.Message) {
-    if (msg.from?.id.toString() !== this.adminId) {
-      return
-    }
-    const text = msg.text
-    if (text !== "approve" && text !== "reject") {
-      return
-    }
-    const status: DB.UserStatus = text === "approve" ? "accepted" : "rejected"
-    const users = await this.userRepo.getUsersByStatus("new")
-    if (users.length === 0) {
-      this.bot.sendMessage(this.adminId, "Нет новых заявок для обработки")
-      return
-    }
-    const user = users[0]
-    await this.userRepo.updateStatus(user.id, status)
-    const statusText = status === "accepted" ? "одобрена" : "отклонена"
-    this.bot.sendMessage(
-      this.adminId,
-      `Заявка от ${user.username} ${statusText}`,
-    )
-    await this.handleExistingUser({ ...user, status })
   }
 }

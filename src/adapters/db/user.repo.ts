@@ -1,30 +1,25 @@
+import { IUserRepo, User, UserStatus } from "#root/ports/user.js"
 import { Kysely } from "kysely"
-
-export class UserRepo {
+export class UserRepo implements IUserRepo {
   constructor(private readonly db: Kysely<DB.Schema>) {}
 
-  async get(id: string) {
-    return this.db
+  async select(id: string): Promise<User | null> {
+    const user = await this.db
       .selectFrom("user")
       .where("id", "=", id)
       .selectAll()
       .executeTakeFirst()
+    if (!user) {
+      return null
+    }
+    return user
   }
 
-  async createUser(id: string, username: string) {
-    return this.db
-      .insertInto("user")
-      .values({
-        id,
-        username,
-        auth_key: "",
-        created_at: new Date().toISOString(),
-        status: "new",
-      })
-      .execute()
+  async insert(user: User): Promise<void> {
+    await this.db.insertInto("user").values(user).execute()
   }
 
-  async getUsersByStatus(status: DB.UserStatus) {
+  async getUsersByStatus(status: UserStatus): Promise<User[]> {
     return this.db
       .selectFrom("user")
       .where("status", "=", status)
@@ -32,8 +27,8 @@ export class UserRepo {
       .execute()
   }
 
-  async updateStatus(id: string, status: DB.UserStatus) {
-    return this.db
+  async updateStatus(id: string, status: UserStatus): Promise<void> {
+    await this.db
       .updateTable("user")
       .set({ status })
       .where("id", "=", id)
