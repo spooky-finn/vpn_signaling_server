@@ -1,7 +1,7 @@
-import { IUserRepo, User, UserStatus } from "#root/ports/user.js"
-import { Kysely } from "kysely"
+import { DataStore, IUserRepo, User, UserStatus } from "#root/ports/user.js"
+
 export class UserRepo implements IUserRepo {
-  constructor(private readonly db: Kysely<DB.Schema>) {}
+  constructor(private readonly db: DataStore) {}
 
   async select(id: string): Promise<User | null> {
     const user = await this.db

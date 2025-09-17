@@ -6,7 +6,12 @@ declare global {
       user: UserTable
     }
 
-    type UserStatus = "new" | "accepted" | "rejected"
+    enum UserStatus {
+      new = 0,
+      accepted = 1,
+      rejected = 2,
+    }
+
     export interface UserTable {
       id: string
       username: string

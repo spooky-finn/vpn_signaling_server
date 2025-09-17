@@ -1,7 +1,7 @@
 import { IUserRepo, User } from "#root/ports/user.js"
-import TelegramBot,  from "node-telegram-bot-api"
+import TelegramBot from "node-telegram-bot-api"
 import { randomBytes } from "node:crypto"
-import { AdminService } from "./admin"
+import { AdminCallbackData, AdminService } from "./admin"
 
 export class HandleMsgService {
   constructor(
@@ -11,53 +11,45 @@ export class HandleMsgService {
   ) {}
 
   async handleMsg(msg: TelegramBot.Message) {
-    if (msg.from?.is_bot) {
-      return
-    }
+    if (msg.from?.is_bot) return
     const userId = msg.from?.id.toString()
     if (!userId) {
       throw new Error("User ID is required")
     }
-    const username = msg.from?.username
-    if (!username) {
-      throw new Error("Username is required")
-    }
 
     const isAdminCallback = await this.adminService.handleAdminCallback(msg)
-    if (isAdminCallback) {
-      return
-    }
+    if (isAdminCallback) return
 
     const user = await this.userRepo.select(userId)
     if (!user) {
-      await this.registerUser(msg.from!)
+      await this.register(msg.from!)
     } else {
-      await this.getUserStatus(user)
+      await this.sendStatus(user)
     }
   }
 
-  async registerUser(user: TelegramBot.User) {
+  async register(user: TelegramBot.User) {
     const auth_key = randomBytes(32).toString("hex")
     const username = user.username || ""
     await this.userRepo.insert({
       id: user.id.toString(),
       username,
-      status: "new",
+      status: DB.UserStatus.new,
       auth_key,
       created_at: new Date().toISOString(),
     })
     this.sendMessageToAdmin(user.username || user.id.toString(), "Новая заявка")
   }
 
-  async getUserStatus(user: User) {
-    if (user.status === "new") {
+  async sendStatus(user: User) {
+    if (user.status === DB.UserStatus.new) {
       this.bot.sendMessage(
         user.id,
         `Администратор скоро рассмотрит вашу заявку`,
       )
       return
     }
-    if (user.status === "accepted") {
+    if (user.status === DB.UserStatus.accepted) {
       const configLink = this.getConfigLink(user)
       this.bot.sendMessage(
         user.id,
@@ -65,7 +57,7 @@ export class HandleMsgService {
       )
       return
     }
-    if (user.status === "rejected") {
+    if (user.status === DB.UserStatus.rejected) {
       this.bot.sendMessage(user.id, `Ваша заявка отклонена`)
       return
     }
@@ -77,12 +69,18 @@ export class HandleMsgService {
 
   private sendMessageToAdmin(username: string, message: string) {
     const msg = `Новая заявка от ${username}: ${message}`
-    this.bot.sendMessage(this.adminId, msg, {
+    this.bot.sendMessage(this.adminService.adminId, msg, {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: "approve", callback_data: "approve" },
-            { text: "reject", callback_data: "reject" },
+            {
+              text: AdminCallbackData.Approve,
+              callback_data: AdminCallbackData.Approve,
+            },
+            {
+              text: AdminCallbackData.Reject,
+              callback_data: AdminCallbackData.Reject,
+            },
           ],
         ],
         one_time_keyboard: true,

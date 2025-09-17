@@ -1,0 +1,13 @@
+[Unit]
+Description=Sing-Box Proxy Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sing-box run -c /root/config.json
+User=root
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
