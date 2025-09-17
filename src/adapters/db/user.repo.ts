@@ -1,9 +1,9 @@
-import { DataStore, IUserRepo, User, UserStatus } from "#root/ports/user.js"
+import { DataStore, IUserRepo, User } from "#root/ports/user.js"
 
 export class UserRepo implements IUserRepo {
   constructor(private readonly db: DataStore) {}
 
-  async select(id: string): Promise<User | null> {
+  async select(id: number): Promise<User | null> {
     const user = await this.db
       .selectFrom("user")
       .where("id", "=", id)
@@ -19,7 +19,7 @@ export class UserRepo implements IUserRepo {
     await this.db.insertInto("user").values(user).execute()
   }
 
-  async getUsersByStatus(status: UserStatus): Promise<User[]> {
+  async getUsersByStatus(status: DB.UserStatus): Promise<User[]> {
     return this.db
       .selectFrom("user")
       .where("status", "=", status)
@@ -27,7 +27,7 @@ export class UserRepo implements IUserRepo {
       .execute()
   }
 
-  async updateStatus(id: string, status: UserStatus): Promise<void> {
+  async updateStatus(id: number, status: DB.UserStatus): Promise<void> {
     await this.db
       .updateTable("user")
       .set({ status })

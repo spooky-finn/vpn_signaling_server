@@ -7,13 +7,13 @@ declare global {
     }
 
     enum UserStatus {
-      new = 0,
-      accepted = 1,
-      rejected = 2,
+      New = 0,
+      Accepted = 1,
+      Rejected = 2,
     }
 
     export interface UserTable {
-      id: string
+      id: number
       username: string
       auth_key: string
       created_at: string

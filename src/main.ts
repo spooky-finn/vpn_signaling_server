@@ -12,8 +12,8 @@ async function main() {
   log.info("Starting server")
   const db = initDB()
 
-  const token = process.env.TG_BOT_TOKEN
-  if (!token) {
+  const botToken = process.env.TG_BOT_TOKEN
+  if (!botToken) {
     log.error("TG_BOT_TOKEN is not set, exiting")
     process.exit(1)
   }
@@ -24,10 +24,18 @@ async function main() {
     process.exit(1)
   }
 
-  const bot = new TelegramBot(token, { polling: true })
+  const clientConfigEndpoint = process.env.CLIENT_CONFIG_ENDPOINT
+  if (!clientConfigEndpoint) {
+    log.error("CLIENT_CONFIG_ENDPOINT is not set")
+    process.exit(1)
+  }
+
+  const bot = new TelegramBot(botToken, { polling: true })
   const userRepo = new UserRepo(db)
-  const adminService = new AdminService(userRepo, bot, adminId)
-  const handleMsgService = new HandleMsgService(bot, userRepo, adminService)
+  const adminService = new AdminService(userRepo, adminId)
+  const handleMsgService = new HandleMsgService(bot, userRepo, adminService, {
+    clientConfigEndpoint,
+  })
 
   bot.on("message", (msg) => {
     handleMsgService.handleMsg(msg)
