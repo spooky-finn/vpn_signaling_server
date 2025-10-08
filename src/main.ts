@@ -1,11 +1,11 @@
 import dotenv from "dotenv"
 import TelegramBot from "node-telegram-bot-api"
-import { UserRepo } from "./adapters/db/user.repo"
-import { AdminService } from "./service/admin"
-import { HandleMsgService } from "./service/handle_msg"
-import { initDB } from "./utils/db"
-import { validateAppEnv } from "./utils/env"
-import { initLogger, log } from "./utils/log"
+import { UserRepo } from "./adapters/db/user.repo.js"
+import { AdminService } from "./service/admin.js"
+import { HandleMsgService } from "./service/handle_msg.js"
+import { initDB } from "./utils/db.js"
+import { validateAppEnv } from "./utils/env.js"
+import { initLogger, log } from "./utils/log.js"
 
 async function main() {
   dotenv.config()

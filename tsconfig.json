@@ -10,7 +10,7 @@
     "baseUrl": ".",
     "paths": {
       "#root/*": [
-        "src/*"
+        "./src/*"
       ]
     },
     "sourceMap": true,

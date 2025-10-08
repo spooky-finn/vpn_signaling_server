@@ -1,7 +1,7 @@
 import { IUserRepo, User } from "#root/ports/user.js"
 import TelegramBot from "node-telegram-bot-api"
 import { randomBytes } from "node:crypto"
-import { AdminService, InvationCmd } from "./admin"
+import { AdminService, InvationCmd } from "./admin.js"
 
 interface Config {
   clientConfigEndpoint: string

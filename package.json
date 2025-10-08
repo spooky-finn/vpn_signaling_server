@@ -1,14 +1,15 @@
 {
   "name": "vpn_signaling_server",
   "version": "1.0.0",
-  "main": "main.ts",
+  "type": "module",
+  "main": "dist/src/main.js",
   "scripts": {
-    "start": "tsx ./src/main.ts",
-    "dev": "tsx watch ./src/main.ts",
+    "start": "npm run build && node ./dist/src/main.js",
+    "dev": "tsc -p tsconfig.json --watch & node --watch ./dist/src/main.js",
     "build": "tsc -p tsconfig.json",
-    "test": "tsx --test",
-    "deploy": "tsx ./deploy.ts",
-    "migration:create": "tsx ./src/utils/create-migration.ts",
+    "test": "npm run build && node --test ./dist/**/*.test.js",
+    "deploy": "npm run build && node ./dist/deploy.js",
+    "migration:create": "npm run build && node ./dist/src/utils/create-migration.js",
     "prepare": "ts-patch install"
   },
   "imports": {
@@ -42,7 +43,6 @@
     "@types/node": "^24.0.15",
     "@types/node-telegram-bot-api": "^0.64.9",
     "ts-patch": "^3.3.0",
-    "tsx": "^4.20.3",
     "typescript": "^5.9.3"
   }
 }

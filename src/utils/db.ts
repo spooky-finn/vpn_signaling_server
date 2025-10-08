@@ -1,10 +1,10 @@
-import { log } from "#root/ioc"
+import { log } from "#root/ioc.js"
 import fs from "node:fs"
 import path from "node:path"
 import { Kysely } from "kysely"
 import { SqliteDialect } from "kysely-node-sqlite"
 import { DatabaseSync } from "node:sqlite"
-import { migrateDB } from "./migrate"
+import { migrateDB } from "./migrate.js"
 
 export function initDB(dbLocation: string) {
   const isExist = fs.existsSync(dbLocation)
