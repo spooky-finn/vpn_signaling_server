@@ -1,5 +1,5 @@
 import dotenv from "dotenv"
-import { validateDeployEnv } from "./src/utils/env.js"
+import { validateDeployEnv } from "./src/env.js"
 import { Remote, RemoteConn } from "./src/utils/remote_conn.js"
 ;(async () => {
   dotenv.config({ quiet: true })

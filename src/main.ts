@@ -1,11 +1,15 @@
 import dotenv from "dotenv"
 import TelegramBot from "node-telegram-bot-api"
 import { UserRepo } from "./adapters/db/user.repo.js"
+import { validateAppEnv } from "./env.js"
 import { AdminService } from "./service/admin.js"
 import { HandleMsgService } from "./service/handle_msg.js"
 import { initDB } from "./utils/db.js"
-import { validateAppEnv } from "./utils/env.js"
 import { initLogger, log } from "./utils/log.js"
+
+process.on("unhandledRejection", (err) => {
+  log.error(err, "Unhandled rejection")
+})
 
 async function main() {
   dotenv.config()
