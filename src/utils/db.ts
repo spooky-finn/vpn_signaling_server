@@ -6,13 +6,7 @@ import { SqliteDialect } from "kysely-node-sqlite"
 import { DatabaseSync } from "node:sqlite"
 import { migrateDB } from "./migrate"
 
-export function initDB() {
-  const dbLocation = process.env.DB_LOCATION
-  if (!dbLocation) {
-    log.error("DB_LOCATION is not set, exiting")
-    process.exit(1)
-  }
-
+export function initDB(dbLocation: string) {
   const isExist = fs.existsSync(dbLocation)
   if (!isExist) {
     fs.mkdirSync(path.dirname(dbLocation), { recursive: true })

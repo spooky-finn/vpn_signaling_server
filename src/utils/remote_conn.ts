@@ -42,6 +42,7 @@ export class RemoteConn {
       if (!stdout) {
         throw new Error("No output from remote command")
       }
+      return stdout
     } catch (error) {
       process.exit(1)
     }

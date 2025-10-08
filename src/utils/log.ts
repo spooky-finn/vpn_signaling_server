@@ -1,12 +1,11 @@
 import { pino } from "pino"
-
-const timestampDisabled = process.env.LOG_DISABLE_TIMESTAMP === "true"
-
+let timestampDisabled = false
 let logInstance: pino.Logger
 
-export function initLogger(level = "info") {
+export function initLogger(level = "info", disableTimestamp?: string) {
   if (!logInstance) {
     console.log("Initializing logger with level:", level)
+    timestampDisabled = disableTimestamp === "true"
     const ignoreScript = ["pid", "hostname", "level-label"]
 
     if (timestampDisabled) {

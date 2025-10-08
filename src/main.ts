@@ -4,37 +4,22 @@ import { UserRepo } from "./adapters/db/user.repo"
 import { AdminService } from "./service/admin"
 import { HandleMsgService } from "./service/handle_msg"
 import { initDB } from "./utils/db"
+import { validateAppEnv } from "./utils/env"
 import { initLogger, log } from "./utils/log"
 
 async function main() {
   dotenv.config()
-  initLogger(process.env.LOG_LEVEL)
+  // Validate environment variables using typia
+  const env = validateAppEnv()
+  initLogger(env.LogLevel, env.LogDisableTimestamp)
   log.info("Starting server")
-  const db = initDB()
+  const db = initDB(env.DbLocation)
 
-  const botToken = process.env.TG_BOT_TOKEN
-  if (!botToken) {
-    log.error("TG_BOT_TOKEN is not set, exiting")
-    process.exit(1)
-  }
-
-  const adminId = process.env.TG_ADMIN_ID
-  if (!adminId) {
-    log.error("TG_ADMIN_ID is not set, exiting")
-    process.exit(1)
-  }
-
-  const clientConfigEndpoint = process.env.CLIENT_CONFIG_ENDPOINT
-  if (!clientConfigEndpoint) {
-    log.error("CLIENT_CONFIG_ENDPOINT is not set")
-    process.exit(1)
-  }
-
-  const bot = new TelegramBot(botToken, { polling: true })
+  const bot = new TelegramBot(env.TgBotToken, { polling: true })
   const userRepo = new UserRepo(db)
-  const adminService = new AdminService(userRepo, adminId)
+  const adminService = new AdminService(userRepo, env.TgAdminId)
   const handleMsgService = new HandleMsgService(bot, userRepo, adminService, {
-    clientConfigEndpoint,
+    clientConfigEndpoint: env.ClientConfigEndpoint,
   })
 
   bot.on("message", (msg) => {
